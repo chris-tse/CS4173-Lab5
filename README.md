@@ -1,5 +1,5 @@
 # CS 4173 Lab 5
-#### Cross-Site Request Forgery Attack Lab
+#### Cross-Site Scripting Attack Lab
 
 ## Prerequisites
 Versions of software used listed here:
