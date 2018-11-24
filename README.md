@@ -66,3 +66,5 @@ $ nc -l 5555 -v
 These two lines retrieve the tokens which are used to prevent CSRF attacks. In order to make a request, one must have the correct tokens or else the server will reject the request.
 
 ### Question 2
+
+If the user can only use the rich text editor, they will not be able to insert malicious scripts into their profile. If we inspect the POST request, we can see that if we attempt to insert a script through the editor, characters such as the angle brackets are converted to their respective HTML entities like `&lt;` and `&gt;` for example. This prevents the HTML from parsing it as an HTML `script` tag and reading it as a regular string instead.
