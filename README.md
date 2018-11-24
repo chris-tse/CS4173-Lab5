@@ -72,7 +72,7 @@ If the user can only use the rich text editor, they will not be able to insert m
 
 ## Task 5: Modifying the Victim’s Profile
 
-In addition to adding himself as a friend, Samy can also use cross-site scripting attack in order to modify the user's 
+In addition to adding himself as a friend, Samy can also use cross-site scripting attack in order to modify a user's profile. Again, by taking the CSRF tokens and their guid, Samy can make a malicious POST request once he knows the structure of the request. This can be done by inspecting the contents of the request with HTTP Header Live. The following script will change the profile of anyone visiting Samy's profile to say "Samy is my hero":
 
 ```html
 <script type="text/javascript">
@@ -101,3 +101,7 @@ In addition to adding himself as a friend, Samy can also use cross-site scriptin
     }
 </script>
 ```
+
+### Question 3
+
+We need this line in order to make the attack successful since the page redirects to the user's profile after saving their profile. If we remove this line (or set it to `if (true)`), once Samy saves the malicious script, it will immediately send the POST request to change his own profile to say "Samy is my hero" and therefore when future visitors arrive at his profile, that is all they will see. Therefore, we first need to check if the user viewing the page is Samy himself; if so, the attack should not happen.
