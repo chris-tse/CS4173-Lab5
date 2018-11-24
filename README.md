@@ -150,3 +150,5 @@ One of the more widespread effects of XSS can be seen through the creation of se
     }
 </script>
 ```
+
+With this script on Samy's profile, now when Alice visits Samy's profile, her page will now say "Samy is my hero" with the script embedded in it. Then later when Boby visits Alice's page, his will then say "Samy is my hero" along with a copy of the script as well.
